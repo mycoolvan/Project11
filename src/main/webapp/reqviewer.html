@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Request Viewer</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+<style>
+/* width */
+::-webkit-scrollbar {
+  width: 20px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey; 
+  border-radius: 10px;
+}
+ 
+/* Handle */    
+::-webkit-scrollbar-thumb {
+  background: #555555; 
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: grey; 
+}
+
+::-webkit-scrollbar-corner{
+    background: #333333;
+}
+summary::-webkit-details-marker {
+  display: none
+}
+summary::before { 
+  content: "+ ";
+}
+details[open] summary::before {
+  content: "- ";
+}
+</style>
+</head>
+
+<body onload="getReq(); getManReq();" style="background-color: #CCCCCC">
+    <nav class="navbar sticky-top navbar-dark bg-dark">
+      <table class="navbar-brand" width="100%"><tr><td width="70%">Request Manager </td><td>Current Balance:&emsp;<td id="balance">....</td> </td><td>&emsp;&emsp;Pending Balance:&emsp;<td id="pendbal">....</td>
+                </td></tr></table>
+    </nav>
+
+    <table style="width:100%; height: 100%;" >
+        <tr>
+            <td style="width: 30%">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                            aria-controls="home" aria-selected="true">Your Request</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab"
+                            aria-controls="profile" aria-selected="false">Manage</a>
+                    </li>
+                    <button class= "btn btn-primary" onclick="reqform()" style="position:relative; margin-left:auto; margin-right:5%;">Make Request</button>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab"
+                        style="overflow-y: scroll; height: 800px">
+                        <p id="result"><img src="loading.gif"></p>
+                    </div>
+                    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab"
+                        style="overflow-y: scroll; height: 800px">
+                        <p id="result2"><img src="loading.gif"></p>
+                    </div>
+                </div>
+                    
+            </td>
+            <td style="width:70%">
+                <div class = "container" id="reqview">
+
+            </div>
+            </td>
+        </tr>
+    </table>
+    <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="#"></a>
+            <br>
+            <br>
+            <br>
+            <br>
+
+        </nav>
+
+
+</body>
+<script>
+    function reqform(){
+        document.getElementById("reqview").innerHTML=`<h2> Reimbursement Form </h2>
+                <hr>
+                <h5>Date</h5>
+                <input id="reqdate" type="date" value="">
+
+                <h5>Time</h5>
+                <input id="reqtime" type="time">
+
+                <h5>Request Description</h5>
+                <textarea id="reqdesc"></textarea>
+
+                <h5>Cost</h5>
+                <input id="cost" type="text">
+
+                <h5>Grade Format</h5>
+                <input id="gradef" type="text">
+
+                <h5>Grade status</h5>
+                <input id="gradestatus" type="text">
+
+                <h5>Event Type</h5> 
+                <select id="eventtype">
+                    <option selected = "true" disabled value="">-----</option>
+                    <option>University Courses</option>
+                    <option>Seminars</option>
+                    <option>Certification Preparation Classes</option>
+                    <option>Certification</option>
+                    <option>Technical Training</option>
+                    <option>Other</option>
+                </select>
+
+                <h5>Work Justification</h5>
+                <textarea id="workjust"></textarea>
+
+                <h5>Attachments </h5>
+                <input id="files" type="file">
+
+
+                <br>
+                <br>
+                <div style="width:50%"> <button class="btn btn-secondary btn-block" onclick="addRequest()">Send Request</button></div>`;
+    }
+    function getReq() {
+        //	let empid = document.getElementById("empid").value;
+
+        var pairs = document.cookie.split(";");
+        var cookies = {};
+        for (var i = 0; i < pairs.length; i++) {
+            var pair = pairs[i].split("=");
+            cookies[(pair[0] + '').trim()] = unescape(pair[1]);
+        }
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.responseText);
+                let requestArray = JSON.parse(this.responseText);
+                console.log(requestArray);
+                let x = "";
+                var pendbal= requestArray[0];
+                var balance= requestArray[1];
+                console.log(balance);
+                pendbal=1000-balance-pendbal;
+                balance=1000-balance;
+                console.log(balance);
+                
+                let request = requestArray[2];
+                for (var i = 0; i < request.length; i++) {
+                    console.log(request[i].reqid);
+                    if(request[i].status==300){
+                        x+=` <details onclick ="getReqByID(${request[i].reqid})" style="background-color: #a4fdb8;">`;
+                    }
+                    else if(request[i].status==-1){
+                        x+=` <details onclick ="getReqByID(${request[i].reqid})" style="background-color: #f17878;">`;
+
+                    }
+                    else{
+                        x+=` <details onclick ="getReqByID(${request[i].reqid})" >`;
+                    }
+                    x += `<summary>id: ${request[i].reqid} &emsp; Date: ${request[i].reqdate}
+                           <br> Event: ${request[i].eventtype}
+                           <br> Description: ${request[i].reqdesc}
+                        </summary>`
+                    for (var j = 0; j < request[i].messages.length; j++) {
+                        console.log(request[i].messages[j].fromuser);
+                        if (request[i].messages[j].fromuser != cookies.username) {
+                            x+= `<div style="position: relative; background: #c0c0c0; border-radius: .4em; padding: 2%; color: black; width: 60%;" value="${request[i].messages[j].fromuser}">`
+                        }
+                        else{
+                            x+= `<div style="position: relative; background: #00aabb; border-radius: .4em; padding: 2%; color: white; width: 60%; margin-left:auto; margin-right:0;" value="${request[i].messages[j].fromuser}"> `
+                        }
+                        x += ` From: ${request[i].messages[j].fromuser} <br>  To: ${request[i].messages[j].touser} 
+                                 <br> ${request[i].messages[j].msg} <br>`
+                        if (request[i].messages[j].fromuser != cookies.username) {
+                            x += `<textarea col=8 rows=2 id="${request[i].messages[j].msgid}msg"></textarea> <br><button class="btn btn-secondary" value="${request[i].messages[j].fromuser}" onclick="sendMessage(${request[i].reqid}, this.value, ${request[i].messages[j].msgid})"> 
+                                 Reply to ${request[i].messages[j].fromuser}</button>
+                                 `
+                        }
+            
+                        x += `</div><hr>`
+                    }
+                    x += `</details>`
+                }
+                document.getElementById("result").innerHTML = x;
+                document.getElementById("balance").innerHTML = "$"+balance;
+                document.getElementById("pendbal").innerHTML = "$"+pendbal;
+
+            }
+
+
+
+        }
+        xhttp.open("GET", "http://localhost:8080/Project1/userRequest.do", true);
+        xhttp.send();
+    }
+
+
+
+    function getManReq() {
+        //	let empid = document.getElementById("empid").value;
+        var pairs = document.cookie.split(";");
+        var cookies = {};
+        for (var i = 0; i < pairs.length; i++) {
+            var pair = pairs[i].split("=");
+            cookies[(pair[0] + '').trim()] = unescape(pair[1]);
+        }
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                let request = JSON.parse(this.responseText);
+                console.log(request);
+                let x = "";
+
+                for (var i = 0; i < request.length; i++) {
+                    console.log(request[i].reqid);
+                    if(request[i].status==300){
+                        x+=` <details onclick ="getReqByIDm(${request[i].reqid})" style="background-color: #a4fdb8;">`;
+                    }
+                    else{
+                        x+=` <details onclick ="getReqByIDm(${request[i].reqid})" >`;
+                    }
+                    x += `<summary>id: ${request[i].reqid} &emsp; Date: ${request[i].reqdate}
+                           <br> Event: ${request[i].eventtype}
+                           <br> Description: ${request[i].reqdesc}
+                        </summary>`
+                    for (var j = 0; j < request[i].messages.length; j++) {
+                        console.log(request[i].messages[j].fromuser);
+                        if (request[i].messages[j].fromuser != cookies.username) {
+                            x+= `<div style="position: relative; background: #c0c0c0; border-radius: .4em; padding: 2%; color: black; width: 60%;" value="${request[i].messages[j].fromuser}">`
+                        }
+                        else{
+                            x+= `<div style="position: relative; background: #00aabb; border-radius: .4em; padding: 2%; color: white; width: 60%; margin-left:auto; margin-right:0;" value="${request[i].messages[j].fromuser}"> `
+                        }
+                        x += ` From: ${request[i].messages[j].fromuser} <br>  To: ${request[i].messages[j].touser} 
+                                 <br> ${request[i].messages[j].msg} <br>`
+                        if (request[i].messages[j].fromuser != cookies.username) {
+                            x += `<textarea col=8 rows=2 id="${request[i].messages[j].msgid}msg"></textarea> <br><button class="btn btn-secondary" value="${request[i].messages[j].fromuser}" onclick="sendMessage(${request[i].reqid}, this.value, ${request[i].messages[j].msgid})"> 
+                                 Reply to ${request[i].messages[j].fromuser}</button>
+                                 `
+                        }
+            
+                        x += `</div><hr>`
+                    }
+                    x += `</details>`
+                }
+                document.getElementById("result2").innerHTML = x;
+
+
+            }
+
+
+
+        }
+        xhttp.open("GET", "http://localhost:8080/Project1/managedRequest.do", true);
+        xhttp.send();
+    }
+
+    function sendMessage(reqid, fromuser, msgid) {
+        let msg = document.getElementById(msgid + "msg").value;
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.responseText)
+
+            }
+        }
+        xhttp.open("POST", "http://localhost:8080/Project1/sendMessage.do?", true);
+        xhttp.setRequestHeader('X-Request-with', 'XMLHttpRequest');
+        xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhttp.send("reqid=" + reqid + "&fromuser=" + fromuser + "&msg=" + msg);
+        document.getElementById("reqview").innerHTML=`<div class="alert alert-success" role="alert">
+  Message Sent! 
+</div>`;
+
+    }
+
+    function getReqByID(reqid){
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.responseText)
+                let request = JSON.parse(this.responseText);
+                var datestr = request.reqdate;
+                var date = datestr.slice(0,8);
+                var time = datestr.slice(8, datestr.length);
+                document.getElementById("reqview").innerHTML=`<h2> Req ID: ${request.reqid} for Emp#${request.empid}</h2>
+                <hr>
+                <h5>Date</h5>
+                <input id="reqdate" type="text" value="${date}" disabled>
+
+                <h5>Time</h5>
+                <input id="reqtime" type="time" value="${time}" disabled>
+
+                <h5>Request Description</h5>
+                <textarea id="reqdesc" disabled>${request.reqdesc}</textarea>
+
+                <h5>Cost</h5>
+                <input id="cost" value="${request.cost}" type="text" disabled>
+
+                <h5>Grade Format</h5>
+                <input id="gradef" value="${request.gradef}" type="text" disabled>
+
+                <h5>Grade status</h5>
+                <input id="gradestatus" value="${request.gradestatus}" type="text" disabled>
+
+                <h5>Event Type</h5>
+                <input id="eventtype" value="${request.eventtype}" disabled>
+
+                <h5>Work Justification</h5>
+                <textarea id="workjust" disabled>${request.workjust}</textarea>
+
+                <h5>Attachments </h5>
+
+                <h5>Remarks</h5>
+                <textarea id="remark" disabled>${request.remark}</textarea>`
+
+            }
+        }
+        xhttp.open("GET", "http://localhost:8080/Project1/getRequest.do?reqid="+reqid, true);
+        xhttp.send();
+    }
+    function getReqByIDm(reqid){
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.responseText)
+                let request = JSON.parse(this.responseText);
+                var datestr = request.reqdate;
+                var date = datestr.slice(0,8);
+                var time = datestr.slice(8, datestr.length);
+                document.getElementById("reqview").innerHTML=`<h2> Req ID: ${request.reqid} for Emp#${request.empid}</h2>
+                <hr>
+                <h5>Date</h5>
+                <input id="reqdate" type="text" value="${date}" disabled>
+
+                <h5>Time</h5>
+                <input id="reqtime" type="time" value="${time}" disabled>
+
+                <h5>Request Description</h5>
+                <textarea id="reqdesc" disabled>${request.reqdesc}</textarea>
+
+                <h5>Cost</h5>
+                <input id="cost" value="${request.cost}" type="text" disabled>
+
+                <h5>Grade Format</h5>
+                <input id="gradef" value="${request.gradef}" type="text" disabled>
+
+                <h5>Grade status</h5>
+                <input id="gradestatus" value="${request.gradestatus}" type="text" disabled>
+
+                <h5>Event Type</h5>
+                <input id="eventtype" value="${request.eventtype}" disabled>
+
+                <h5>Work Justification</h5>
+                <textarea id="workjust" disabled>${request.workjust}</textarea>
+
+                <h5>Attachments </h5>
+
+                <h5>Remarks</h5>
+                <textarea id="remark">${request.remark}</textarea>
+                <br>
+                <div style="float:right">
+                <button class="btn btn-success" onclick="updateRequest(${request.reqid}, ${request.empid})">
+                    Accept</button>&nbsp;<button class="btn btn-secondary">Pend</button>&nbsp;<button class="btn btn-danger">Deny</button> </div>`
+
+            }
+        }
+        xhttp.open("GET", "http://localhost:8080/Project1/getRequest.do?reqid="+reqid, true);
+        xhttp.send();
+    }
+    function addRequest(){
+    let reqdate  = document.getElementById("reqdate").value+" "+ document.getElementById("reqtime").value;
+    let reqdesc = document.getElementById("reqdesc").value;
+    let cost = document.getElementById("cost").value;
+    let gradef = document.getElementById("gradef").value;
+    let gradestatus = document.getElementById("gradestatus").value;
+    let eventtype = document.getElementById("eventtype").value;
+    let workjust = document.getElementById("workjust").value;
+    let pendbal= document.getElementById("pendbal").innerHTML;
+    let balance= document.getElementById("balance").innerHTML;
+    
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange= function(){
+        if(this.readyState == 4 && this.status == 200)
+        {
+            //console.log(this.responseText);
+        }
+    }
+	
+
+ 
+    console.log(pendbal + balance);
+    xhttp.open("POST","http://localhost:8080/Project1/addRequest.do?", true);
+    xhttp.setRequestHeader('X-Request-with', 'XMLHttpRequest');
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	xhttp.send("reqdate="+reqdate+"&reqdesc="+reqdesc+"&cost="+cost+"&gradef="+gradef+"&gradestatus="+gradestatus+"&eventtype="+eventtype+"&workjust="+workjust+"&status=0&pendbal="+pendbal+"&balance="+balance);
+    document.getElementById("reqview").innerHTML=`<center><img src="loading.gif"></center>`;
+    wait(3500);
+    document.getElementById("reqview").innerHTML=`<div class="alert alert-success" role="alert">
+  Reimbursement Request Added Successfully! Please Wait for it to be reviewed.
+</div>`;
+    getReq();
+}
+function updateRequest(reqid, empid){
+    let xhttp = new XMLHttpRequest();
+    
+    xhttp.onreadystatechange= function(){
+        if(this.readyState == 4 && this.status == 200)
+        {
+            console.log(this.responseText);
+        }
+    }
+
+    xhttp.open("POST","http://localhost:8080/Project1/updateRequest.do?", true);
+    xhttp.setRequestHeader('X-Request-with', 'XMLHttpRequest');
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhttp.send("reqid="+reqid+"&remark="+remark+"&empid="+empid);    
+    document.getElementById("reqview").innerHTML=`<img src="loading.gif">`;
+    wait(3500);
+    document.getElementById("reqview").innerHTML=`<div class="alert alert-success" role="alert">
+  Reimbursement Request Status Updated.
+</div>`;
+    getManReq();
+}
+function wait(ms)
+{
+var d = new Date();
+var d2 = null;
+do { d2 = new Date(); }
+while(d2-d < ms);
+}
+
+</script>
+
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title> Login </title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
+<style type="text/css">
+	.login-form {
+		width: 340px;
+    	margin: 50px auto;
+	}
+    .login-form form {
+    	margin-bottom: 15px;
+        background: #f7f7f7;
+        box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
+    .login-form h2 {
+        margin: 0 0 15px;
+    }
+    .form-control, .btn {
+        min-height: 38px;
+        border-radius: 2px;
+    }
+    .btn {        
+        font-size: 15px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body style="background-color: #CCCCCC">
+<div class="login-form">
+    <div>
+        <h2 class="text-center">Log in</h2>       
+        <div class="form-group">
+            <input id="username" type="text" class="form-control" placeholder="Username" required="required">
+        </div>
+        <div class="form-group">
+            <input id="password" type="password" class="form-control" placeholder="Password" required="required">
+        </div>
+        <div class="form-group">
+            <button onclick="login()" class="btn btn-primary btn-block">Log in</button>
+        </div>
+        <div class="clearfix">
+            <label class="pull-left checkbox-inline"><input type="checkbox"> Remember me</label>
+            <a href="#" class="pull-right">Forgot Password?</a>
+        </div>        
+        <div id="logged">
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+
+<script>
+function login(){
+    let username = document.getElementById("username").value;
+    let password  = document.getElementById("password").value;
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange= function(){
+        if(this.readyState == 4 && this.status == 200)
+        {
+        	let emp = JSON.parse(this.responseText);
+        	if(emp==null){
+        		document.getElementById("logged").innerHTML=`<div class="alert alert-danger" role="alert">
+  Incorrect Username/Password, Please try again or reset password.
+</div>`
+        	}
+        	else{
+        		window.location.replace("reqviewer.html");
+            }
+            
+        }
+    }
+    console.log(username);
+    console.log(password);
+    //console.log(sessionStorage.getItem("name"));
+    xhttp.open("POST","http://localhost:8080/Project1/login.do?", true);
+    xhttp.setRequestHeader('X-Request-with', 'XMLHttpRequest');
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	xhttp.send("username="+username+"&password="+password);
+
+}
+</script>
+</html>
